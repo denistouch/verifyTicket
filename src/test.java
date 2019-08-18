@@ -8,7 +8,7 @@ public class test {
         Ticket newTicket = new Ticket(numberString);
         String out = newTicket.verifyTicket();
         System.out.println(out);
-        //1605727302 446D577FD8C8
+        //1605727302  446D577FD8C8
     }
 }
 
