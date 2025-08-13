@@ -1,6 +1,6 @@
 import org.jetbrains.annotations.NotNull;
 
-public record LuckyTicket(String number) {
+public record LuckyTicket(@NotNull String number) {
 
     @NotNull
     public Report calculate() {
@@ -13,31 +13,97 @@ public record LuckyTicket(String number) {
         var leftSum = new Sequence(prepared.substring(0, preparedLength / 2)).sum();
         var rightSum = new Sequence(prepared.substring(preparedLength / 2)).sum();
 
-        return new Report(this.number, leftSum == rightSum, leftSum, rightSum, preparedLength);
+        return new Report(this.number, leftSum == rightSum, leftSum, rightSum, prepared);
     }
 
-    private String prepareFormat(String number) {
-        if (null == number) {
-            return "";
-        }
-        if (!isEvenLength(number)) {
-            number += 0;
+    private String prepareFormat(@NotNull String number) {
+        String prepared = number.toLowerCase().replaceAll("[^0-9a-f]", "");
+
+        if (!isEvenLength(prepared)) {
+            return prepared + 0;
         }
 
-        return number.toLowerCase().replaceAll("-", "");
+        return prepared;
     }
 
-    private boolean isEvenLength(String number) {
+    private boolean isEvenLength(@NotNull String number) {
         return number.length() % 2 == 0;
     }
 
-    private boolean isInvalid(String number) {
-        return null == number || number.isBlank();
+    private boolean isInvalid(@NotNull String number) {
+        return number.isBlank();
     }
 
-    public record Sequence(String sequence) {
+    public static class Report {
+        private final String original;
+        private final String prepared;
+        private final boolean isLucky;
+        private final int leftSum;
+        private final int rightSum;
+        private boolean invalid = false;
 
-        public int sum() {
+        private Report(@NotNull String original, boolean isValid, int leftSum, int rightSum, @NotNull String prepared) {
+            this.original = original;
+            this.prepared = prepared;
+            this.isLucky = isValid;
+            this.leftSum = leftSum;
+            this.rightSum = rightSum;
+        }
+
+        private Report(@NotNull String original) {
+            this.original = original;
+            this.isLucky = false;
+            this.leftSum = 0;
+            this.rightSum = 0;
+            this.invalid = true;
+            this.prepared = "";
+        }
+
+        private static Report invalid(@NotNull String original) {
+            return new Report(original);
+        }
+
+        public boolean isInvalid() {
+            return invalid;
+        }
+
+        public boolean isLucky() {
+            return isLucky;
+        }
+
+        public int getLeftSum() {
+            return leftSum;
+        }
+
+        public int getRightSum() {
+            return rightSum;
+        }
+
+        public String print() {
+            var report = "Ticket: " + original + "\n";
+            if (invalid) {
+                return report + "Invalid Ticket";
+            }
+
+            report += "Prepared: " + prepared + "\n";
+
+            if (isLucky) {
+                return report + "Lucky Ticket!!!";
+            }
+
+            report += "Not Lucky Ticket\n";
+            report += "Ticket length: " + original.length() + "\n";
+            report += "Prepared length: " + prepared.length() + "\n";
+            report += "Left sum: " + leftSum + "\n";
+            report += "Right sum: " + rightSum + "\n";
+
+            return report;
+        }
+    }
+
+    private record Sequence(@NotNull String sequence) {
+
+        private int sum() {
             int sum = 0;
             for (char i : sequence.toCharArray()) {
                 sum += hexToDec(i);
@@ -56,74 +122,6 @@ public record LuckyTicket(String number) {
                 case 'f' -> 15;
                 default -> Character.getNumericValue(value);
             };
-        }
-    }
-
-    public static class Report {
-        private final String original;
-        private final boolean isValid;
-        private final int ticketLength;
-        private final int leftSum;
-        private final int rightSum;
-        private boolean invalid = false;
-
-        public Report(String original, boolean isValid, int leftSum, int rightSum, int ticketLength) {
-            this.original = original;
-            this.isValid = isValid;
-            this.leftSum = leftSum;
-            this.rightSum = rightSum;
-            this.ticketLength = ticketLength;
-        }
-
-        private Report(String original) {
-            this.original = original;
-            this.isValid = false;
-            this.leftSum = 0;
-            this.rightSum = 0;
-            this.ticketLength = 0;
-            this.invalid = true;
-        }
-
-        private static Report invalid(String original) {
-            return new Report(original);
-        }
-
-        public boolean isInvalid() {
-            return invalid;
-        }
-
-        public boolean isValid() {
-            return isValid;
-        }
-
-        public int getTicketLength() {
-            return ticketLength;
-        }
-
-        public int getLeftSum() {
-            return leftSum;
-        }
-
-        public int getRightSum() {
-            return rightSum;
-        }
-
-        public String print() {
-            var report = "Ticket: " + original + "\n";
-            if (invalid) {
-                return report + "Invalid Ticket";
-            }
-
-            if (isValid) {
-                return report + "Lucky Ticket!!!";
-            }
-
-            report += "Not Lucky Ticket\n";
-            report += "Ticket length: " + ticketLength + "\n";
-            report += "Left sum: " + leftSum + "\n";
-            report += "Right sum: " + rightSum + "\n";
-
-            return report;
         }
     }
 }
